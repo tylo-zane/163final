@@ -139,11 +139,18 @@ def problem3(data):
         datetime.datetime.strptime('16:00:00', '%H:%M:%S').time()
     afternoon_rush_hour2 = \
         datetime.datetime.strptime('20:00:00', '%H:%M:%S').time()
+    morning_rush_hour1 = \
+        datetime.datetime.strptime('07:00:00', '%H:%M:%S').time()
+    morning_rush_hour2 = \
+        datetime.datetime.strptime('10:00:00', '%H:%M:%S').time()
 
     data = data[['pickup_time', 'tip_amount']]
     data.loc[:, 'traffic?'] = 'non-rush-hour'
     data.loc[(data['pickup_time'] >= afternoon_rush_hour1) &
              (data['pickup_time'] <= afternoon_rush_hour2),
+             'traffic?'] = 'rush-hour'
+    data.loc[(data['pickup_time'] >= morning_rush_hour1) &
+             (data['pickup_time'] <= morning_rush_hour2),
              'traffic?'] = 'rush-hour'
     data.loc[:, 'tip?'] = 'no'
     data.loc[data['tip_amount'] > 0.0, 'tip?'] = 'yes'
