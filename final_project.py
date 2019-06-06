@@ -15,6 +15,13 @@ matplotlib.use("TkAgg")
 
 
 def problem1(data, taxi_zones):
+    """
+    Plots four maps of New York depicting the prevalence of taxi pickups per
+    each taxi zone (Each map corresponds to a different time frame)
+
+    @param data: Dataframe containing taxi trip records
+    @param taxi_zones: GeoDataframe containing geometry for taxi zones
+    """
     data['index_num'] = np.arange(len(data))
     # The 2 lines of code below takes awhile to run
     data['pickup_time'] = data['tpep_pickup_datetime'].apply(
@@ -101,20 +108,33 @@ def problem1(data, taxi_zones):
 
 def problem2(data, taxi_zones, lookup):
     """
+    Plots a map of New York depicting the average tip received by drop-off
+    location
+    @param data: Dataframe containing taxi trip records
+    @param taxi_zones: GeoDataframe containing geometry for taxi zones
     """
     zones = data.groupby('DOLocationID')['tip_amount'].mean().to_frame()
     taxi_DO = taxi_zones.merge(zones, right_on='DOLocationID',
                                left_on='OBJECTID', how='inner')
     taxi_DO.plot(column='tip_amount', figsize=(10, 10), legend=True)
     plt.title("Average Tip (in USD) Across Drop-Off Locations")
+    plt.savefig('average_tips.png')
     top_8 = zones.merge(lookup, left_on='DOLocationID', right_on='LocationID',
                         how='right')
     top_8 = top_8.sort_values(by=['tip_amount'], ascending=False)
     top_8 = top_8.iloc[:8]
-    top_8.head()
+    print(top_8)
+    print("A visual response has been saved to the " +
+          "source directory as 'average_tips.png'")
 
 
 def problem3(data):
+    """
+    Runs a chi-squared hypothesis test to determine whether the event of
+    receiving a tip is independent of rush-hour traffic.
+
+    @param data: Dataframe containing taxi trip records
+    """
     afternoon_rush_hour1 = \
         datetime.datetime.strptime('16:00:00', '%H:%M:%S').time()
     afternoon_rush_hour2 = \
@@ -137,7 +157,7 @@ def problem3(data):
     p_value = stats.chi2_contingency(f_obs)[1]
 
     if (p_value < 0.05):
-        print("The null hypothesis is rejected, there is correlation " +
+        print("The null hypothesis is rejected, there is dependency " +
               "between driving through rush-hour traffic and " +
               "whether or not the driver gets a tip")
     else:
@@ -148,6 +168,12 @@ def problem3(data):
 
 def problem4(data):
     """
+    Creates a decision tree to determine the duration of a trip (starting from
+    Newark Airport) based on its destination, pick-up time, and trip distance.
+
+    @param data: Dataframe containing taxi trip records
+    @returns: A tuple containing the generated model, as well as its features
+              and labels used for testing/training. (For testing purposes)
     """
     sub = data[(data['PULocationID'] == 1)]
     sub = sub.dropna()
@@ -163,11 +189,17 @@ def problem4(data):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
     model = DecisionTreeRegressor()
     model.fit(X_train, y_train)
-    # plot_tree(model, X, y)
+    plot_tree(model, X, y)
+    return (model, X_train, X_test, y_train, y_test)
 
 
 def plot_tree(model, X, y):
     """
+    Plots a decision tree and saves it as a png file.
+
+    @param model: the decision tree model to plot
+    @X: The features of the model
+    @y: The labels of the model
     """
     dot_data = StringIO()
     export_graphviz(model, out_file=dot_data,
@@ -176,8 +208,10 @@ def plot_tree(model, X, y):
                     filled=True, rounded=True,
                     special_characters=True)
     graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
-    graph.write_png('decision.png')
+    graph.write_png('trips_from_Newark.png')
     Image(graph.create_png())
+    print("A visual response has been saved to the " +
+          "source directory as 'trips_from_Newark.png'")
 
 
 def main():
@@ -211,6 +245,10 @@ def main():
     print('Research Question 3:')
     print("Is receiving a tip independent of rush hour traffic?")
     problem3(taxi_record)
+    print('Research Question 4:')
+    print("How long does it take on average to get from Newark Airport to " +
+          "a particular neighborhood at a particular time of day?")
+    problem4(taxi_record)
 
 
 if __name__ == '__main__':
