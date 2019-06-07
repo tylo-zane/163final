@@ -119,6 +119,7 @@ def problem2(data, taxi_zones, lookup):
     taxi_DO.plot(column='tip_amount', figsize=(10, 10), legend=True)
     plt.title("Average Tip (in USD) Across Drop-Off Locations")
     plt.savefig('average_tips.png')
+    plt.show()
     top_8 = zones.merge(lookup, left_on='DOLocationID', right_on='LocationID',
                         how='right')
     top_8 = top_8.sort_values(by=['tip_amount'], ascending=False)
