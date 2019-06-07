@@ -194,7 +194,7 @@ def problem4(data):
     X = sub[['DOLocationID', 'tpep_pickup_datetime', 'trip_distance']]
     y = sub['trip_duration']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-    model = DecisionTreeRegressor()
+    model = DecisionTreeRegressor(max_depth=72)
     model.fit(X_train, y_train)
     plot_tree(model, X, y)
     return (model, X_train, X_test, y_train, y_test)
